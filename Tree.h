@@ -33,19 +33,37 @@ typedef struct storage_struct {
 
 class Tree {
 protected:
-	btree_node *roots;
-	FILE *pfile;
+	btree_node *root;
+	// FILE *pfile;
 	int btree_node_num;
 
 public:
 	Tree() {
 		btree_node_num = 0;
-	}
+	};
 
 	virtual ~Tree() {
 		btree_node_num = 0;
-		delete roots;
-	}
+		delete root;
+	};
+
+	void insert(int target) {
+		root = btree_insert(root, target);
+	};
+
+	void level_display() {
+		btree_level_display(root);
+	};
+
+	void del(int target) {
+		root = btree_delete(root, target);
+	};
+
+	int getNodeNum() {
+		return btree_node_num;
+	};
+
+protected:
 
 	/**
 	 * create a btree root
@@ -73,7 +91,7 @@ public:
 	 * @param target:
 	 * @return:
 	 */
-	virtual btree_node btree_delete(btree_node *root, int target) = 0;
+	virtual btree_node* btree_delete(btree_node *root, int target) = 0;
 
 	/**
 	 * level print the tree
@@ -87,8 +105,6 @@ public:
 	 */
 	virtual void save(btree_node *root) = 0;
 
-
-protected:
 	/**
 	 * split child if num of key in child exceed 2 * M - 1
 	 *

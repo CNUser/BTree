@@ -143,7 +143,5 @@ btree_node* BPlusTree::btree_insert(btree_node *root, int target) {
 }
 
 void BPlusTree::btree_merge_child(btree_node *root, int pos, btree_node *left, btree_node *right) {
-	if (true == left->isLeaf) {
-		left->num = 2 * M - 2;
-	}
+
 }

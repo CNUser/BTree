@@ -158,6 +158,9 @@ void BTree::btree_merge_child(btree_node *root, int pos, btree_node *y, btree_no
 	free(z);
 }
 
+/**
+ *
+ */
 btree_node* BTree::btree_delete(btree_node *root, int target) {
 	// while root only has two child, and the two child only has (M-1) keys,
 	// merger root and the two child
@@ -182,4 +185,172 @@ btree_node* BTree::btree_delete(btree_node *root, int target) {
 		btree_delete_nonone(root, target);
 		return root;
 	}
+}
+
+void BTree::btree_delete_nonone(btree_node *root, int target) {
+	if (true == root->isLeaf) {
+		// if target in root node
+		int i = 0;
+		while (i < root->num && target > root->key[i]) {
+			i++;
+		}
+
+		if (i < root->num && target == root->key[i]) {
+			for (int j = i + 1; j < 2 * M - 1; j++) {
+				root->key[j - 1] = root->key[j];
+			}
+			root->num -= 1;
+			btree_node_num -= 1;
+
+		} else {
+			printf("target not found\n");
+		}
+
+	} else {
+		// root is not leaf, is a internal node
+		int i = 0;
+		btree_node *y = NULL, *z = NULL;
+
+		while (i < root->num && target > root->key[i]) {
+			i++;
+		}
+
+		if (i < root->num && target == root->key[i]) {
+			y = root->p[i];
+			z = root->p[i + 1];
+			if (y->num > M - 1) {
+				// if root's left child has more than M - 1 keys, find the right most
+				// node of left child, which is prev node, to exchange target
+				// then delete that prev node in left child
+				int pre = btree_search_predecessor(y);
+				root->key[i] = pre;
+				btree_delete_nonone(y, pre);
+
+			} else if (z->num > M - 1) {
+				int next = btree_search_successor(z);
+				root->key[i] = next;
+				btree_delete_nonone(z, next);
+
+			} else {
+				btree_merge_child(root, i, y, z);
+				btree_delete(y, target);
+			}
+
+		} else {
+			// target is not in root node, must hide in its child
+			y = root->p[i];
+			if (i < root->num) {
+				z = root->p[i + 1];
+			}
+
+			btree_node *t = NULL;
+			if (i > 0) {
+				t = root->p[i - 1];
+			}
+
+			if (y->num == M - 1) {
+				if (i > 0 && t->num > M - 1) {
+					btree_shift_to_right_child(root, i - 1, t, y);
+
+				} else if (i < root->num && z->num > M - 1) {
+					btree_shift_to_left_child(root, i, y, z);
+
+				} else if (i > 0) {
+					btree_merge_child(root, i - 1, t, y);
+					y = t;
+
+				} else {
+					btree_merge_child(root, i, y, z);
+				}
+
+				btree_delete_nonone(y, target);
+
+			} else {
+				btree_delete_nonone(y, target);
+			}
+		}
+	}
+}
+
+int BTree::btree_search_predecessor(btree_node *root) {
+	btree_node *y = root;
+	while (false == y->isLeaf) {
+		y = y->p[y->num];
+	}
+
+	return y->key[y->num - 1];
+}
+
+int BTree::btree_search_successor(btree_node *root) {
+	btree_node *z = root;
+	while (false == z->isLeaf) {
+		z = z->p[0];
+	}
+
+	return z->key[0];
+}
+
+void BTree::btree_shift_to_right_child(btree_node *root, int pos, btree_node *y, btree_node *z) {
+	z->num += 1;
+	for (int i = z->num - 1; i > 0; i--) {
+		z->key[i] = z->key[i - 1];
+	}
+	z->key[0] = root->key[pos];
+	root->key[pos] = y->key[y->num - 1];
+
+	if (false == z->isLeaf) {
+		for (int i = z->num; i > 0; i--) {
+			z->p[i] = z->p[i - 1];
+		}
+
+		z->p[0] = y->p[y->num];
+	}
+
+	y->num -= 1;
+}
+
+void BTree::btree_shift_to_left_child(btree_node *root, int pos, btree_node *y, btree_node *z) {
+	y->num += 1;
+	y->key[y->num - 1] = root->key[pos];
+	root->key[pos] = z->key[0];
+
+	for (int i = 1; i < z->num; i++) {
+		z->key[i - 1] = z->key[i];
+	}
+
+	if (false == z->isLeaf) {
+		y->p[y->num] = z->p[0];
+		for (int j = 1; j <= z->num; j++) {
+			z->p[j - 1] = z->p[j];
+		}
+	}
+
+	z->num -= 1;
+}
+
+void BTree::btree_level_display(btree_node *root) {
+	btree_node *queue[200] = {NULL};
+	int front = 0, rear = 0;
+
+	queue[rear++] = root;
+	while (front < rear) {
+		btree_node *node = queue[front++];
+		printf("[");
+		for (int i = 0; i < node->num; i++) {
+			printf("%d ", node->key[i]);
+		}
+		printf("]\n");
+
+		for (int i = 0; i <= node->num; i++) {
+			queue[rear++] = node->p[i];
+		}
+	}
+}
+
+BTree::BTree() {
+	root = btree_create();
+}
+
+BTree::~BTree() {
+
 }
