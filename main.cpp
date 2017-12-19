@@ -14,7 +14,7 @@ int main() {
 	BTree bt;
 	int arr[] = {18, 31, 21, 10, 15, 48, 45, 50, 52, 23, 30, 20};
 
-	for (int i = 0; i < sizeof(arr) / sizeof(int); i++) {
+	for (unsigned int i = 0; i < sizeof(arr) / sizeof(int); i++) {
 		bt.insert(arr[i]);
 	}
 

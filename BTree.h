@@ -15,7 +15,7 @@
 class BTree : public Tree {
 public:
 	BTree();
-	~BTree();
+	virtual ~BTree();
 
 protected:
     virtual btree_node* btree_create();

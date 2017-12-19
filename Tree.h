@@ -133,7 +133,7 @@ protected:
 	 * @param z: right node to merge
 	 */
 	virtual void btree_merge_child(btree_node *root, int pos, btree_node *left,
-			btree_node *right);
+			btree_node *right) = 0;
 
 	/**
 	 * delete value from btree
